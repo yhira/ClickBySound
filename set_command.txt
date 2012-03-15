@@ -1,0 +1,28 @@
+<GRAMMAR LANGID="809">
+
+  <!-- "Constant" definitions -->
+
+  <DEFINE>
+    <ID NAME="RID_start" VAL="1"/>
+    <ID NAME="PID_chosencommand" VAL="2"/>
+    <ID NAME="PID_commandvalue" VAL="3"/>
+  </DEFINE>
+
+  <!-- Rule definitions -->
+
+  <RULE NAME="start" ID="RID_start" TOPLEVEL="ACTIVE">
+    <!--<O>remocon</O>-->
+    <RULEREF NAME="remocon" PROPNAME="chosencommand" PROPID="PID_chosencommand" />
+    <!--<O>please</O>-->
+  </RULE>
+
+  <RULE NAME="remocon">
+    <L PROPNAME="commandvalue" PROPID="PID_commandvalue">
+      <P VAL="0">operation-change</P>
+      <P VAL="1">top-mode</P>
+      <P VAL="2">right-click</P>
+      <P VAL="3">compact</P>
+    </L>
+  </RULE>
+</GRAMMAR>
+
