@@ -8,7 +8,7 @@ uses
   ,Dbg, Menus, ExtIniFile, ActnList, Option, ShellApi, ToolWin, ImgList,
   XPMan, MMSystem, AppEvnts, ActiveX;
 
-const VERSION = '0.01.07';
+const VERSION = '0.01.09';
 
 type
   TOption = class
@@ -19,6 +19,8 @@ type
     FIsSound: Boolean;
     FIsRecognition: Boolean;
     FIsVoiceInfo: Boolean;
+    FIsKeepRight: Boolean;
+    procedure SetIsKeepRight(const Value: Boolean);
   public
     constructor Create;
     procedure Read;   
@@ -27,8 +29,9 @@ type
     property DblClkSpeed: Cardinal read FDblClkSpeed write FDblClkSpeed;
     property RightClkTime: Cardinal read FRightClkTime write FRightClkTime;
     property IsSound: Boolean read FIsSound write FIsSound;
-    property IsRecognition: Boolean read FIsRecognition write FIsRecognition;       
+    property IsRecognition: Boolean read FIsRecognition write FIsRecognition;
     property IsVoiceInfo: Boolean read FIsVoiceInfo write FIsVoiceInfo;
+    property IsKeepRight: Boolean read FIsKeepRight write SetIsKeepRight;
   end;
 
 
@@ -114,6 +117,7 @@ type
     DblStartTime, RightStartTime, DragStartTime: Cardinal;
     FIsTopMost: Boolean;
     DefPauseBtnWndProc: TWndMethod;
+    DefRightClickBtnWndProc: TWndMethod;
     FIsRightClick: Boolean;
     FIsCompact: Boolean;
     FIsRecognition: Boolean;
@@ -121,7 +125,8 @@ type
     procedure SetIsTopMost(const Value: Boolean);
     procedure SetIsPause(const Value: Boolean);
     procedure OpenWeb(Url: string);
-    procedure PauseProc(var Message: TMessage);
+    procedure PauseProc(var Message: TMessage);  
+    procedure RightClickProc(var Message: TMessage);
     procedure SetIsRightClick(const Value: Boolean);
     procedure MouseLeftDown;
     procedure MouseLeftUp;    
@@ -141,7 +146,8 @@ type
     { Public 宣言 }
     FIsPause: Boolean;
     Option: TOption;
-    IsPauseBtnMouseEnter: Boolean;
+    IsPauseBtnMouseEnter: Boolean;   
+    IsRightClickBtnMouseEnter: Boolean;
     procedure InvokeUI(const TypeOfUI, Caption: WideString);
     procedure Speak(s: string);
     procedure MakeSetCmdFile;
@@ -265,7 +271,10 @@ begin
     if IsSysBtn then
       if IsRightClick then begin
         MouseRighUp;
-        IsRightClick := False;
+        if Option.IsKeepRight and IsRightClickBtnMouseEnter then
+          IsRightClick := False;
+        if (not Option.IsKeepRight) then
+          IsRightClick := False;
         AddLog(h, b, 'Right up', gp, AudioLevel);
       end else begin
         MouseLeftUp;
@@ -284,8 +293,11 @@ begin
       if IsRightClick then begin
         if nht = HTCAPTION then Exit;
         MouseRighUp;
-        AddLog(h, b, 'Right up', gp, AudioLevel);
-        IsRightClick := False;
+        AddLog(h, b, 'Right up', gp, AudioLevel);   
+        if Option.IsKeepRight and IsRightClickBtnMouseEnter then
+          IsRightClick := False;
+        if (not Option.IsKeepRight) then
+          IsRightClick := False;
       end else begin
         MouseLeftUp; 
         AddLog(h, b, 'Left up', gp, AudioLevel);
@@ -323,6 +335,12 @@ begin
   if FileExists(SET_CMD_FILE) then begin
     CopyFile(PChar(SET_CMD_FILE), PChar(CMD_FILE), False);
   end;
+  if (DebugHook <> 0) and (Win32MajorVersion >= 6) then Exit;
+  if (Win32MajorVersion >= 6) then begin
+    RcgLogMemo.Visible := False;
+    Splitter1.Visible := False;
+  end;
+
   s := CMD_FILE;
   Reco := SpSharedRecoContext1;
   try
@@ -332,7 +350,7 @@ begin
     SRGrammar.CmdSetRuleIdState(0, SGDSActive);
   except
     on E:Exception do
-     if Pos('80045052', E.Message) > 0 then begin
+     if (Pos('80045052', E.Message) > 0) and (Win32MajorVersion < 6) then begin
         Beep;
         if (MessageDlg('SAPI 5.1が適切にセットアップされていません。'#13#10 +
           'マイクロソフトから「SpeechSDK51.exe」をダウンロード・インストールし、'#13#10 +
@@ -364,6 +382,9 @@ begin
 
   DefPauseBtnWndProc := PauseToolButton.WindowProc;
   PauseToolButton.WindowProc := PauseProc;
+
+  DefRightClickBtnWndProc := RightClickToolButton.WindowProc;
+  RightClickToolButton.WindowProc := RightClickProc;
 
   Option := TOption.Create;
         
@@ -423,6 +444,7 @@ begin
   FDblClkSpeed := 500;
   FRightClkTime := 2000;
   IsSound := True;
+  IsKeepRight := False;
 end;
 
 procedure TOption.Read;
@@ -430,12 +452,18 @@ begin
   with MainForm.ExtIniFile1 do begin
     Sensitivity := ReadInt('option', 'Sensitivity', Sensitivity);
     DblClkSpeed := ReadInt('option', 'DblClkSpeed', DblClkSpeed);
-    RightClkTime := ReadInt('option', 'RightClkTime', RightClkTime);  
+    RightClkTime := ReadInt('option', 'RightClkTime', RightClkTime);
     IsSound := ReadBool('option', 'IsSound', IsSound);
     IsRecognition := ReadBool('option', 'IsRecognition', IsRecognition);
     MainForm.IsRecognition := IsRecognition;
-    IsVoiceInfo := ReadBool('option', 'IsVoiceInfo', IsVoiceInfo);
+    IsVoiceInfo := ReadBool('option', 'IsVoiceInfo', IsVoiceInfo);  
+    IsKeepRight := ReadBool('option', 'IsKeepRight', IsKeepRight);
   end;
+end;
+
+procedure TOption.SetIsKeepRight(const Value: Boolean);
+begin
+  FIsKeepRight := Value;
 end;
 
 procedure TOption.Write;
@@ -444,10 +472,11 @@ begin
     WriteInt('option', 'Sensitivity', Sensitivity);
     WriteInt('option', 'DblClkSpeed', DblClkSpeed);
     WriteInt('option', 'RightClkTime', RightClkTime);
-    WriteBool('option', 'IsSound', IsSound);    
+    WriteBool('option', 'IsSound', IsSound);
     IsRecognition := MainForm.IsRecognition;
     WriteBool('option', 'IsRecognition', IsRecognition);     
     WriteBool('option', 'IsVoiceInfo', IsVoiceInfo);
+    WriteBool('option', 'IsKeepRight', IsKeepRight);
   end;
 end;
 
@@ -466,6 +495,7 @@ begin
       DblClkSpeedSpinEdit.Value := Option.DblClkSpeed;
       RightClkTimeSpinEdit.Value := Option.RightClkTime;
       IsSoundCheckBox.Checked := Option.IsSound;
+      IsKeepRightCheckBox.Checked := Option.IsKeepRight;
       IsRecognitionCheckBox.Checked := IsRecognition;   
       IsVoiceInfoCheckBox.Checked := Option.IsVoiceInfo;
 
@@ -473,7 +503,8 @@ begin
         Option.Sensitivity := SensitivitySpinEdit.Value;
         Option.DblClkSpeed := DblClkSpeedSpinEdit.Value;
         Option.RightClkTime := RightClkTimeSpinEdit.Value;
-        Option.IsSound := IsSoundCheckBox.Checked;
+        Option.IsSound := IsSoundCheckBox.Checked;  
+        Option.IsKeepRight := IsKeepRightCheckBox.Checked;
         IsRecognition := IsRecognitionCheckBox.Checked;
         Option.IsVoiceInfo := IsVoiceInfoCheckBox.Checked;
       end;
@@ -795,7 +826,7 @@ end;
 procedure TMainForm.SetIsRecognition(const Value: Boolean);
 begin
   FIsRecognition := Value;
-  RcgLogMemo.Visible := Value;
+//  RcgLogMemo.Visible := Value and (Win32MajorVersion >= 6);
   MakeSetCmdFile;
 end;
 
@@ -820,6 +851,15 @@ begin
   SpVoice1.Speak(s, SVSFDefault);
 //  SpSharedRecoContext1.Resume;
 
+end;
+
+procedure TMainForm.RightClickProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    CM_MOUSEENTER: IsRightClickBtnMouseEnter := True;
+    CM_MOUSELEAVE: IsRightClickBtnMouseEnter := False;
+    else DefRightClickBtnWndProc(Message);
+  end;
 end;
 
 end.

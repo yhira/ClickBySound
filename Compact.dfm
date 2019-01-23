@@ -35,7 +35,7 @@ object CompactForm: TCompactForm
       Top = 2
       Action = MainForm.TopMostAction
     end
-    object ToolButton3: TToolButton
+    object RightClickToolButton: TToolButton
       Left = 46
       Top = 2
       Action = MainForm.RightClickAction

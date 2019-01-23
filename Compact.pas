@@ -12,15 +12,17 @@ type
     ProgressBar1: TProgressBar;
     PauseToolButton: TToolButton;
     ToolButton2: TToolButton;
-    ToolButton3: TToolButton;
+    RightClickToolButton: TToolButton;
     ToolButton4: TToolButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
     { Private êÈåæ }           
-    DefPauseBtnWndProc: TWndMethod;
+    DefPauseBtnWndProc: TWndMethod; 
+    DefRightClickBtnWndProc: TWndMethod;
     procedure PauseProc(var Message: TMessage);
+    procedure RightClickProc(var Message: TMessage);
   protected
     procedure WMExitsizemove(var Message: TMessage);
       message WM_EXITSIZEMOVE;
@@ -65,6 +67,9 @@ procedure TCompactForm.FormCreate(Sender: TObject);
 begin
   DefPauseBtnWndProc := PauseToolButton.WindowProc;
   PauseToolButton.WindowProc := PauseProc;
+
+  DefRightClickBtnWndProc := RightClickToolButton.WindowProc;
+  RightClickToolButton.WindowProc := RightClickProc;
 end;
 
 procedure TCompactForm.WMExitsizemove(var Message: TMessage);
@@ -73,6 +78,15 @@ begin
 //    if IsTopMost then
 ////      SetWindowPos(Application.Handle, HWND_TOPMOST,0,0,0,0,SWP_NOSIZE or SWP_NOMOVE);
 //      IsTopMost := IsTopMost;
+end;
+
+procedure TCompactForm.RightClickProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    CM_MOUSEENTER: MainForm.IsRightClickBtnMouseEnter := True;
+    CM_MOUSELEAVE: MainForm.IsRightClickBtnMouseEnter := False;
+    else DefRightClickBtnWndProc(Message);
+  end;
 end;
 
 end.

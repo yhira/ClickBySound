@@ -26,6 +26,7 @@ type
     IsVoiceInfoCheckBox: TCheckBox;
     EditCmdButton: TButton;
     Label7: TLabel;
+    Label8: TLabel;
     procedure IsRecognitionButtonClick(Sender: TObject);
     procedure EditCmdButtonClick(Sender: TObject);
   private

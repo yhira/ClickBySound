@@ -27,6 +27,7 @@ type
     EditCmdButton: TButton;
     Label7: TLabel;
     Label8: TLabel;
+    IsKeepRightCheckBox: TCheckBox;
     procedure IsRecognitionButtonClick(Sender: TObject);
     procedure EditCmdButtonClick(Sender: TObject);
   private

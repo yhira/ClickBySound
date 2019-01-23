@@ -24,12 +24,12 @@ object MainForm: TMainForm
   object Splitter1: TSplitter
     Left = 372
     Top = 41
-    Height = 135
+    Height = 143
     Align = alRight
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 176
+    Top = 184
     Width = 500
     Height = 6
     Align = alBottom
@@ -40,7 +40,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 41
     Width = 372
-    Height = 135
+    Height = 143
     Align = alClient
     Columns = <
       item
@@ -127,7 +127,7 @@ object MainForm: TMainForm
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 182
+    Top = 190
     Width = 500
     Height = 19
     Panels = <>
@@ -140,12 +140,11 @@ object MainForm: TMainForm
     Left = 375
     Top = 41
     Width = 125
-    Height = 135
+    Height = 143
     TabStop = False
     Align = alRight
     ReadOnly = True
     TabOrder = 4
-    Visible = False
   end
   object SpSharedRecoContext1: TSpSharedRecoContext
     AutoConnect = True

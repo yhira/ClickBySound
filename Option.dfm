@@ -1,6 +1,6 @@
 object SettingDlg: TSettingDlg
-  Left = 423
-  Top = 229
+  Left = 923
+  Top = 125
   BorderStyle = bsDialog
   Caption = 'Setting'
   ClientHeight = 362
@@ -119,10 +119,10 @@ object SettingDlg: TSettingDlg
   end
   object IsSoundCheckBox: TCheckBox
     Left = 24
-    Top = 176
+    Top = 164
     Width = 153
     Height = 17
-    Caption = 'sound effect on'
+    Caption = 'Sound effect on'
     TabOrder = 5
   end
   object RecognitionGroupBox: TGroupBox
@@ -194,5 +194,13 @@ object SettingDlg: TSettingDlg
       TabOrder = 3
       OnClick = EditCmdButtonClick
     end
+  end
+  object IsKeepRightCheckBox: TCheckBox
+    Left = 24
+    Top = 188
+    Width = 177
+    Height = 17
+    Caption = 'Keep right-click mode'
+    TabOrder = 7
   end
 end
